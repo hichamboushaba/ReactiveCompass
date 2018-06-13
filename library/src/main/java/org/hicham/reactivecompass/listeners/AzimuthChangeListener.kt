@@ -9,9 +9,7 @@ import android.view.Surface
 import android.view.WindowManager
 import io.reactivex.FlowableEmitter
 
-/**
- * Created by Hicham on 13/06/2018.
- */
+
 class AzimuthChangeListener(
         private val context: Context,
         private val emitter: FlowableEmitter<Double>
@@ -49,19 +47,26 @@ class AzimuthChangeListener(
             }
         }
 
-        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER)
-            gravity = event.values
-        if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD)
-            geomagnetic = event.values
-        val R = FloatArray(9)
-        val ROrientated = FloatArray(9)
-        val I = FloatArray(9)
+        var success = true
+        val rMatrix = FloatArray(9)
+        val rOrientated = FloatArray(9)
 
-        val success = SensorManager.getRotationMatrix(R, I, gravity, geomagnetic)
-        SensorManager.remapCoordinateSystem(R, axisX, axisY, ROrientated)
+        if (event.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
+            SensorManager.getRotationMatrixFromVector(rMatrix, event.values)
+        } else {
+            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER)
+                gravity = event.values
+            if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD)
+                geomagnetic = event.values
+            val I = FloatArray(9)
+
+            success = SensorManager.getRotationMatrix(rMatrix, I, gravity, geomagnetic)
+        }
+
+        SensorManager.remapCoordinateSystem(rMatrix, axisX, axisY, rOrientated)
         if (success) {
             val orientation = FloatArray(3)
-            SensorManager.getOrientation(ROrientated, orientation)
+            SensorManager.getOrientation(rOrientated, orientation)
             var azimuth = Math.toDegrees(orientation[0].toDouble()) // orientation contains: azimut, pitch and roll
             if (azimuth < 0)
                 azimuth += 360

@@ -20,6 +20,7 @@ class Compass(
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+    private val rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
     override fun observeAzimuth(): Flowable<Double> {
         if (!isSupported())
@@ -27,8 +28,10 @@ class Compass(
         return Flowable.create<Double>(
                 { emitter ->
                     val listener = AzimuthChangeListener(context, emitter)
-                    sensorManager.registerListener(listener, accelerometer, sensorDelay)
-                    sensorManager.registerListener(listener, magnetometer, sensorDelay)
+                    if (!sensorManager.registerListener(listener, rotationSensor, sensorDelay)) {
+                        sensorManager.registerListener(listener, accelerometer, sensorDelay)
+                        sensorManager.registerListener(listener, magnetometer, sensorDelay)
+                    }
 
                     emitter.setCancellable({ sensorManager.unregisterListener(listener) })
 
@@ -44,7 +47,6 @@ class Compass(
         return Flowable.create<ICompass.Accuracy>(
                 { emitter ->
                     val listener = AccuracyChangeListener(emitter)
-                    sensorManager.registerListener(listener, accelerometer, sensorDelay)
                     sensorManager.registerListener(listener, magnetometer, sensorDelay)
 
                     emitter.setCancellable({ sensorManager.unregisterListener(listener) })
