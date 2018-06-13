@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val azimuthObservable = compass.observeSensor()
+        val azimuthObservable = compass.observeAzimuth()
                 .distinctUntilChanged({ i1, i2 -> Math.abs(i1 - i2) < 1 })
                 .publish()
 

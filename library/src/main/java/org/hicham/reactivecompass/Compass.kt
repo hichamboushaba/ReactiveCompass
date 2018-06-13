@@ -21,7 +21,7 @@ class Compass(
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
-    override fun observeSensor(): Flowable<Double> {
+    override fun observeAzimuth(): Flowable<Double> {
         if (!isSupported())
             throw CompassNotSupportedException()
         return Flowable.create<Double>(
